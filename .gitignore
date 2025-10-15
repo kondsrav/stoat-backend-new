@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # These are some examples of commonly ignored file patterns.
 # You should customize this list as applicable to your project.
 # Learn more about .gitignore:
@@ -48,3 +49,19 @@ Thumbs.db
 *.mov
 *.wmv
 
+=======
+Rocket.toml
+Revolt.*.toml
+compose.override.yml
+
+target
+.data
+.env
+.venv/
+venv/
+
+.vercel
+.DS_Store
+
+.idea
+>>>>>>> 73c9c6d (Initial commit from local working tree)

@@ -1,0 +1,31 @@
+# Custom Dockerfile for building with our search functionality
+FROM rust:1.86-bookworm as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    cmake \
+    nasm \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY . .
+
+# Build the delta service with our custom search functionality
+RUN cargo build --release --bin revolt-delta
+
+# Runtime image
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=builder /app/target/release/revolt-delta /app/revolt-delta
+COPY Revolt.toml /app/
+
+EXPOSE 14702
+CMD ["./revolt-delta"]

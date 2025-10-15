@@ -1,0 +1,149 @@
+version: '3.8'
+
+services:
+  # Database and infra (keep your existing services)
+  redis:
+    image: eqalpha/keydb
+    ports:
+      - "6379:6379"
+
+  database:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./.data/db:/data/db
+
+  minio:
+    image: minio/minio
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: minioautumn
+      MINIO_ROOT_PASSWORD: minioautumn
+    volumes:
+      - ./.data/minio:/data
+    ports:
+      - "14009:9000"
+      - "14010:9001"
+    networks:
+      default:
+        aliases:
+          - revolt-uploads.minio
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      sh -c "
+      until (mc config host add minio http://minio:9000 minioautumn minioautumn); do echo '...waiting...' && sleep 1; done;
+      mc rm -r --force minio/attachments;
+      mc mb minio/attachments;
+      mc rm -r --force minio/avatars;
+      mc mb minio/avatars;
+      mc rm -r --force minio/backgrounds;
+      mc mb minio/backgrounds;
+      mc rm -r --force minio/icons;
+      mc mb minio/icons;
+      mc rm -r --force minio/banners;
+      mc mb minio/banners;
+      mc rm -r --force minio/emojis;
+      mc mb minio/emojis;
+      mc policy set public minio/attachments;
+      mc policy set public minio/avatars;
+      mc policy set public minio/backgrounds;
+      mc policy set public minio/icons;
+      mc policy set public minio/banners;
+      mc policy set public minio/emojis;
+      "
+
+  rabbit:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbituser
+      RABBITMQ_DEFAULT_PASS: rabbitpass
+    volumes:
+      - ./.data/rabbit:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  maildev:
+    image: soulteary/maildev
+    ports:
+      - "14025:25"
+      - "14080:8080"
+
+  # CUSTOM API server with our search functionality
+  api:
+    image: stoat-api-custom:latest
+    depends_on:
+      - database
+      - redis
+      - rabbit
+    volumes:
+      - type: bind
+        source: ./Revolt.toml
+        target: /Revolt.toml
+    environment:
+      - REVOLT_CONFIG_PATH=/Revolt.toml
+      - RUST_LOG=debug
+      - RUST_BACKTRACE=1
+    ports:
+      - "14702:14702"
+    restart: always
+
+  # Prebuilt events (bonfire) server
+  events:
+    image: ghcr.io/revoltchat/bonfire:20250210-1
+    depends_on:
+      - database
+      - redis
+    volumes:
+      - type: bind
+        source: ./Revolt.toml
+        target: /Revolt.toml
+    environment:
+      - REVOLT_CONFIG_PATH=/Revolt.toml
+      - RUST_LOG=debug
+      - RUST_BACKTRACE=1
+    ports:
+      - "14703:14703"
+    restart: always
+
+  # Prebuilt autumn (file service)
+  autumn:
+    image: ghcr.io/revoltchat/autumn:20250210-1
+    depends_on:
+      - database
+      - createbuckets
+    volumes:
+      - type: bind
+        source: ./Revolt.toml
+        target: /Revolt.toml
+    environment:
+      - REVOLT_CONFIG_PATH=/Revolt.toml
+      - RUST_LOG=debug
+      - RUST_BACKTRACE=1
+    ports:
+      - "14704:14704"
+    restart: always
+
+  # Prebuilt january (proxy service)
+  january:
+    image: ghcr.io/revoltchat/january:20250210-1
+    volumes:
+      - type: bind
+        source: ./Revolt.toml
+        target: /Revolt.toml
+    environment:
+      - REVOLT_CONFIG_PATH=/Revolt.toml
+      - RUST_LOG=debug
+      - RUST_BACKTRACE=1
+    ports:
+      - "14705:14705"
+    restart: always
+
+networks:
+  default:
+    driver: bridge
