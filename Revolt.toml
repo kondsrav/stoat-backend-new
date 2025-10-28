@@ -18,11 +18,11 @@ host = "rabbit"
 # See https://github.com/revoltchat/self-hosted/blob/master/Caddyfile
 #
 # Remember to change these to https/wss where appropriate in production!
-app = "http://localhost:14701"
-api = "http://localhost:14702"
-events = "ws://localhost:14703"
-autumn = "http://localhost:14704"
-january = "http://localhost:14705"
+app = "https://stoat-dev.zasperhub.com"
+api = "https://stoat-dev.zasperhub.com"
+events = "ws://stoat-dev.zasperhub.com"
+autumn = "http://autumn:14704"
+january = "http://january:14705"
 voso_legacy = ""
 voso_legacy_ws = ""
 
@@ -50,6 +50,7 @@ access_key_id = "minioautumn"
 # S3 protocol access key
 secret_access_key = "minioautumn"
 # Bucket to upload to by default
-default_bucket = "revolt-uploads"
+default_bucket = "attachments"
 # Use path-style buckets (required for MinIO inside docker-compose)
 path_style_buckets = true
+
