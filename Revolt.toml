@@ -1,36 +1,19 @@
-# ⚠️ This configuration is intended for development environment.
-# If you'd like to override anything, create a Revolt.overrides.toml
-
 [database]
-# MongoDB connection URL
-# Use the docker-compose service name so containers can reach MongoDB inside the compose network
-mongodb = "mongodb://stoat-chat-database-1:27017"
-# Redis connection URL
-# Defaults to the container name specified in self-hosted
-redis = "redis://stoat-chat-redis-1:6379/"
+# Use local service names inside compose.custom.yml
+mongodb = "mongodb://database:27017"
+redis = "redis://redis:6379/"
 
 [rabbit]
-host = "stoat-chat-rabbit-1"
+host = "rabbit"
 
 [hosts]
-# Web locations of various services
-# Defaults assume all services are reverse-proxied
-# See https://github.com/revoltchat/self-hosted/blob/master/Caddyfile
-#
-# Remember to change these to https/wss where appropriate in production!
 app = "https://stoat-dev.zasperhub.com"
 api = "https://stoat-dev.zasperhub.com"
 events = "wss://stoat-dev.zasperhub.com/ws"
-autumn = "http://stoat-chat-autumn-1:14704"
-january = "http://stoat-chat-january-1:14705"
-voso_legacy = ""
-voso_legacy_ws = ""
-
-[api]
+autumn = "http://autumn:14704"
+january = "http://january:14705"
 
 [api.smtp]
-# Email server configuration for verification
-# Defaults to no email verification (host field is empty)
 host = ""
 username = ""
 password = ""
@@ -41,15 +24,10 @@ use_tls = false
 use_starttls = false
 
 [files.s3]
-# S3 protocol endpoint (use service name & internal port in docker-compose)
-endpoint = "http://stoat-chat-minio-1:9000"
-# S3 region name
+endpoint = "http://minio:9000"
 region = "minio"
-# S3 protocol key ID
 access_key_id = "minioautumn"
-# S3 protocol access key
 secret_access_key = "minioautumn"
-# Bucket to upload to by default
 default_bucket = "attachments"
-# Use path-style buckets (required for MinIO inside docker-compose)
 path_style_buckets = true
+

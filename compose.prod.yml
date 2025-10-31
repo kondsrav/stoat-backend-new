@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Database and infrastructure services
   redis:
     image: eqalpha/keydb
     restart: always
@@ -72,9 +73,12 @@ services:
     networks:
       - stoat-network
 
-  # Your custom API with production config
+  # PRODUCTION API server with your custom search functionality and production URLs
   api:
-    image: kondsrav/stoat-api-production:latest
+    image: stoat-api-production:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.api.prod
     depends_on:
       - database
       - redis
@@ -87,21 +91,24 @@ services:
       - type: bind
         source: ./Revolt.toml
         target: /app/Revolt.toml
-        read_only: true 
+        read_only: true
     ports:
       - "14702:14702"
     restart: always
     networks:
       - stoat-network
 
-  # Events service with fixed volume mount
+  # Use prebuilt events service with production config
   events:
     image: ghcr.io/revoltchat/bonfire:20250210-1
     depends_on:
       - database
       - redis
     volumes:
-      - ./Revolt.toml:/Revolt.toml:ro
+      - type: bind
+        source: ./Revolt.production.toml
+        target: /Revolt.toml
+        read_only: true
     environment:
       - REVOLT_CONFIG_PATH=/Revolt.toml
       - RUST_LOG=info
@@ -112,14 +119,17 @@ services:
     networks:
       - stoat-network
 
-  # Autumn service with fixed volume mount
+  # Use prebuilt autumn service with production config
   autumn:
     image: ghcr.io/revoltchat/autumn:20250210-1
     depends_on:
       - database
       - createbuckets
     volumes:
-      - ./Revolt.toml:/Revolt.toml:ro
+      - type: bind
+        source: ./Revolt.production.toml
+        target: /Revolt.toml
+        read_only: true
     environment:
       - REVOLT_CONFIG_PATH=/Revolt.toml
       - RUST_LOG=info
@@ -130,11 +140,14 @@ services:
     networks:
       - stoat-network
 
-  # January service with fixed volume mount
+  # Use prebuilt january service with production config
   january:
     image: ghcr.io/revoltchat/january:20250210-1
     volumes:
-      - ./Revolt.toml:/Revolt.toml:ro
+      - type: bind
+        source: ./Revolt.production.toml
+        target: /Revolt.toml
+        read_only: true
     environment:
       - REVOLT_CONFIG_PATH=/Revolt.toml
       - RUST_LOG=info
@@ -142,14 +155,6 @@ services:
     ports:
       - "14705:14705"
     restart: always
-    networks:
-      - stoat-network
-
-  maildev:
-    image: soulteary/maildev
-    ports:
-      - "14025:25"
-      - "14080:8080"
     networks:
       - stoat-network
 
