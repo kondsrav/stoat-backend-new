@@ -4,13 +4,13 @@
 [database]
 # MongoDB connection URL
 # Use the docker-compose service name so containers can reach MongoDB inside the compose network
-mongodb = "mongodb://database:27017"
+mongodb = "mongodb://stoat-chat-database-1:27017"
 # Redis connection URL
 # Defaults to the container name specified in self-hosted
-redis = "redis://redis:6379/"
+redis = "redis://stoat-chat-redis-1:6379/"
 
 [rabbit]
-host = "rabbit"
+host = "stoat-chat-rabbit-1"
 
 [hosts]
 # Web locations of various services
@@ -20,9 +20,9 @@ host = "rabbit"
 # Remember to change these to https/wss where appropriate in production!
 app = "https://stoat-dev.zasperhub.com"
 api = "https://stoat-dev.zasperhub.com"
-events = "ws://stoat-dev.zasperhub.com"
-autumn = "http://autumn:14704"
-january = "http://january:14705"
+events = "wss://stoat-dev.zasperhub.com/ws"
+autumn = "http://stoat-chat-autumn-1:14704"
+january = "http://stoat-chat-january-1:14705"
 voso_legacy = ""
 voso_legacy_ws = ""
 
@@ -42,7 +42,7 @@ use_starttls = false
 
 [files.s3]
 # S3 protocol endpoint (use service name & internal port in docker-compose)
-endpoint = "http://minio:9000"
+endpoint = "http://stoat-chat-minio-1:9000"
 # S3 region name
 region = "minio"
 # S3 protocol key ID
@@ -53,4 +53,3 @@ secret_access_key = "minioautumn"
 default_bucket = "attachments"
 # Use path-style buckets (required for MinIO inside docker-compose)
 path_style_buckets = true
-

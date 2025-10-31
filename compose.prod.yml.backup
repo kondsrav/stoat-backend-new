@@ -1,0 +1,164 @@
+version: '3.8'
+
+services:
+  # Database and infrastructure services
+  redis:
+    image: eqalpha/keydb
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - stoat-network
+
+  database:
+    image: mongo
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - stoat-network
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioautumn
+      MINIO_ROOT_PASSWORD: minioautumn
+    volumes:
+      - minio_data:/data
+    restart: always
+    networks:
+      stoat-network:
+        aliases:
+          - revolt-uploads.minio
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    restart: "no"
+    networks:
+      - stoat-network
+    entrypoint: >
+      sh -c "
+      until (mc config host add minio http://minio:9000 minioautumn minioautumn); do echo '...waiting...' && sleep 1; done;
+      mc rm -r --force minio/attachments;
+      mc mb minio/attachments;
+      mc rm -r --force minio/avatars;
+      mc mb minio/avatars;
+      mc rm -r --force minio/backgrounds;
+      mc mb minio/backgrounds;
+      mc rm -r --force minio/icons;
+      mc mb minio/icons;
+      mc rm -r --force minio/banners;
+      mc mb minio/banners;
+      mc rm -r --force minio/emojis;
+      mc mb minio/emojis;
+      mc policy set public minio/attachments;
+      mc policy set public minio/avatars;
+      mc policy set public minio/backgrounds;
+      mc policy set public minio/icons;
+      mc policy set public minio/banners;
+      mc policy set public minio/emojis;
+      "
+
+  rabbit:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbituser
+      RABBITMQ_DEFAULT_PASS: rabbitpass
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+    restart: always
+    networks:
+      - stoat-network
+
+  # PRODUCTION API server with your custom search functionality and production URLs
+  api:
+    image: kondsrav/stoat-api-production:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.api.prod
+    depends_on:
+      - database
+      - redis
+      - rabbit
+    environment:
+      - REVOLT_CONFIG_PATH=/app/Revolt.toml
+      - RUST_LOG=info
+      - RUST_BACKTRACE=1
+    ports:
+      - "14702:14702"
+    restart: always
+    networks:
+      - stoat-network
+
+  # Use prebuilt events service with production config
+  events:
+    image: ghcr.io/revoltchat/bonfire:20250210-1
+    depends_on:
+      - database
+      - redis
+    volumes:
+      - type: bind
+        source: ./Revolt.production.toml
+        target: /Revolt.toml
+        read_only: true
+    environment:
+      - REVOLT_CONFIG_PATH=/Revolt.toml
+      - RUST_LOG=info
+      - RUST_BACKTRACE=1
+    ports:
+      - "14703:14703"
+    restart: always
+    networks:
+      - stoat-network
+
+  # Use prebuilt autumn service with production config
+  autumn:
+    image: ghcr.io/revoltchat/autumn:20250210-1
+    depends_on:
+      - database
+      - createbuckets
+    volumes:
+      - type: bind
+        source: ./Revolt.production.toml
+        target: /Revolt.toml
+        read_only: true
+    environment:
+      - REVOLT_CONFIG_PATH=/Revolt.toml
+      - RUST_LOG=info
+      - RUST_BACKTRACE=1
+    ports:
+      - "14704:14704"
+    restart: always
+    networks:
+      - stoat-network
+
+  # Use prebuilt january service with production config
+  january:
+    image: ghcr.io/revoltchat/january:20250210-1
+    volumes:
+      - type: bind
+        source: ./Revolt.production.toml
+        target: /Revolt.toml
+        read_only: true
+    environment:
+      - REVOLT_CONFIG_PATH=/Revolt.toml
+      - RUST_LOG=info
+      - RUST_BACKTRACE=1
+    ports:
+      - "14705:14705"
+    restart: always
+    networks:
+      - stoat-network
+
+volumes:
+  redis_data:
+  mongo_data:
+  minio_data:
+  rabbit_data:
+
+networks:
+  stoat-network:
+    driver: bridge
