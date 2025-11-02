@@ -1,27 +1,33 @@
 [database]
-# Use local service names inside compose.custom.yml
 mongodb = "mongodb://database:27017"
 redis = "redis://redis:6379/"
 
 [rabbit]
 host = "rabbit"
+port = 5672
+username = "rabbituser"
+password = "rabbitpass"
 
 [hosts]
 app = "https://stoat-dev.zasperhub.com"
-api = "https://stoat-dev.zasperhub.com"
+api = "https://stoat-dev.zasperhub.com/api"
 events = "wss://stoat-dev.zasperhub.com/ws"
-autumn = "http://autumn:14704"
-january = "http://january:14705"
+autumn = "https://stoat-dev.zasperhub.com/autumn"
+january = "https://stoat-dev.zasperhub.com/january"
 
 [api.smtp]
-host = ""
+host = "maildev"
 username = ""
 password = ""
-from_address = "development@revolt.chat"
-reply_to = "support@revolt.chat"
+from_address = "noreply@stoat-dev.zasperhub.com"
+reply_to = "support@stoat-dev.zasperhub.com"
 port = 1025
 use_tls = false
 use_starttls = false
+
+[features]
+email_verification = false
+invite_only = false
 
 [files.s3]
 endpoint = "http://minio:9000"
@@ -30,4 +36,3 @@ access_key_id = "minioautumn"
 secret_access_key = "minioautumn"
 default_bucket = "attachments"
 path_style_buckets = true
-

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Database and infrastructure services
   redis:
@@ -62,6 +60,7 @@ services:
       mc policy set public minio/emojis;
       "
 
+  # RabbitMQ for message queuing
   rabbit:
     image: rabbitmq:3-management
     environment:
@@ -72,24 +71,32 @@ services:
     restart: always
     networks:
       - stoat-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
-  # PRODUCTION API server with your custom search functionality and production URLs
+  # PRODUCTION API server - FIXED to use Revolt.production.toml
   api:
-    image: stoat-api-production:latest
+    image: kondsrav/stoat-api-production:latest
     build:
       context: .
       dockerfile: Dockerfile.api.prod
     depends_on:
-      - database
-      - redis
-      - rabbit
+      database:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbit:
+        condition: service_healthy
     environment:
       - REVOLT_CONFIG_PATH=/app/Revolt.toml
       - RUST_LOG=info
       - RUST_BACKTRACE=1
     volumes:
       - type: bind
-        source: ./Revolt.toml
+        source: ./Revolt.production.toml
         target: /app/Revolt.toml
         read_only: true
     ports:
