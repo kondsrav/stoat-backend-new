@@ -1,9 +1,5 @@
-# Production configuration for Stoat Chat
-
 [database]
-# MongoDB connection URL - using docker-compose service name
 mongodb = "mongodb://database:27017"
-# Redis connection URL - using docker-compose service name  
 redis = "redis://redis:6379/"
 
 [rabbit]
@@ -13,32 +9,17 @@ username = "rabbituser"
 password = "rabbitpass"
 
 [hosts]
-# External URLs (what browsers/clients will use)
 app = "https://stoat-dev.zasperhub.com"
 api = "https://stoat-dev.zasperhub.com/api"
 events = "wss://stoat-dev.zasperhub.com/ws"
 autumn = "https://stoat-dev.zasperhub.com/autumn"
 january = "https://stoat-dev.zasperhub.com/january"
-voso_legacy = ""
-voso_legacy_ws = ""
 
-[api]
-external_domain = "stoat-dev.zasperhub.com"
+[features]
+email_verification = false
 invite_only = false
 
-[api.smtp]
-# Email verification disabled for production
-host = ""
-username = ""
-password = ""
-from_address = "noreply@stoat-dev.zasperhub.com"
-reply_to = "support@stoat-dev.zasperhub.com"
-port = 1025
-use_tls = false
-use_starttls = false
-
 [files.s3]
-# MinIO configuration - using docker-compose service name
 endpoint = "http://minio:9000"
 region = "minio"
 access_key_id = "minioautumn"
@@ -46,28 +27,9 @@ secret_access_key = "minioautumn"
 default_bucket = "attachments"
 path_style_buckets = true
 
-# Features configuration
-[features]
-registration = true
-email_verification = false
-invite_only = false
-file_upload = true
-voice_and_video = true
-
-# Service bind configurations (internal)
-[events]
-bind = "0.0.0.0:14703"
-external_ws_url = "wss://stoat-dev.zasperhub.com/ws"
-
-[delta]
-bind = "0.0.0.0:14702"
-external_api_url = "https://stoat-dev.zasperhub.com/api"
-
-[autumn]
-bind = "0.0.0.0:14704"
-external_media_url = "https://stoat-dev.zasperhub.com/autumn"
-max_file_size = 20971520
-
-[january]
-bind = "0.0.0.0:14705"
-external_proxy_url = "https://stoat-dev.zasperhub.com/january"
+# File upload limits
+max_file_size = 20971520  # 20MB
+max_attachment_size = 20971520  # 20MB
+[api]
+# Increase request size limits  
+max_request_size = 52428800  # 50MB

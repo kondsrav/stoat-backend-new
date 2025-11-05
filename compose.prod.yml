@@ -1,12 +1,11 @@
 services:
-  # Database and infrastructure services
   redis:
     image: eqalpha/keydb
     restart: always
     volumes:
       - redis_data:/data
     networks:
-      - stoat-network
+      - stoat-network-stable
 
   database:
     image: mongo
@@ -14,7 +13,7 @@ services:
     volumes:
       - mongo_data:/data/db
     networks:
-      - stoat-network
+      - stoat-network-stable
 
   minio:
     image: minio/minio
@@ -26,7 +25,7 @@ services:
       - minio_data:/data
     restart: always
     networks:
-      stoat-network:
+      stoat-network-stable:
         aliases:
           - revolt-uploads.minio
 
@@ -36,7 +35,7 @@ services:
       - minio
     restart: "no"
     networks:
-      - stoat-network
+      - stoat-network-stable
     entrypoint: >
       sh -c "
       until (mc config host add minio http://minio:9000 minioautumn minioautumn); do echo '...waiting...' && sleep 1; done;
@@ -60,7 +59,6 @@ services:
       mc policy set public minio/emojis;
       "
 
-  # RabbitMQ for message queuing
   rabbit:
     image: rabbitmq:3-management
     environment:
@@ -70,52 +68,36 @@ services:
       - rabbit_data:/var/lib/rabbitmq
     restart: always
     networks:
-      - stoat-network
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+      - stoat-network-stable
 
-  # PRODUCTION API server - FIXED to use Revolt.production.toml
   api:
     image: kondsrav/stoat-api-production:latest
-    build:
-      context: .
-      dockerfile: Dockerfile.api.prod
     depends_on:
-      database:
-        condition: service_started
-      redis:
-        condition: service_started
-      rabbit:
-        condition: service_healthy
+      - database
+      - redis
+      - rabbit
     environment:
       - REVOLT_CONFIG_PATH=/app/Revolt.toml
       - RUST_LOG=info
       - RUST_BACKTRACE=1
     volumes:
       - type: bind
-        source: ./Revolt.production.toml
+        source: ./Revolt.toml
         target: /app/Revolt.toml
         read_only: true
     ports:
       - "14702:14702"
     restart: always
     networks:
-      - stoat-network
+      - stoat-network-stable
 
-  # Use prebuilt events service with production config
   events:
     image: ghcr.io/revoltchat/bonfire:20250210-1
     depends_on:
       - database
       - redis
     volumes:
-      - type: bind
-        source: ./Revolt.production.toml
-        target: /Revolt.toml
-        read_only: true
+      - ./Revolt.toml:/Revolt.toml:ro
     environment:
       - REVOLT_CONFIG_PATH=/Revolt.toml
       - RUST_LOG=info
@@ -124,19 +106,15 @@ services:
       - "14703:14703"
     restart: always
     networks:
-      - stoat-network
+      - stoat-network-stable
 
-  # Use prebuilt autumn service with production config
   autumn:
     image: ghcr.io/revoltchat/autumn:20250210-1
     depends_on:
       - database
       - createbuckets
     volumes:
-      - type: bind
-        source: ./Revolt.production.toml
-        target: /Revolt.toml
-        read_only: true
+      - ./Revolt.toml:/Revolt.toml:ro
     environment:
       - REVOLT_CONFIG_PATH=/Revolt.toml
       - RUST_LOG=info
@@ -145,16 +123,12 @@ services:
       - "14704:14704"
     restart: always
     networks:
-      - stoat-network
+      - stoat-network-stable
 
-  # Use prebuilt january service with production config
   january:
     image: ghcr.io/revoltchat/january:20250210-1
     volumes:
-      - type: bind
-        source: ./Revolt.production.toml
-        target: /Revolt.toml
-        read_only: true
+      - ./Revolt.toml:/Revolt.toml:ro
     environment:
       - REVOLT_CONFIG_PATH=/Revolt.toml
       - RUST_LOG=info
@@ -163,7 +137,15 @@ services:
       - "14705:14705"
     restart: always
     networks:
-      - stoat-network
+      - stoat-network-stable
+
+  maildev:
+    image: soulteary/maildev
+    ports:
+      - "14025:25"
+      - "14080:8080"
+    networks:
+      - stoat-network-stable
 
 volumes:
   redis_data:
@@ -172,5 +154,6 @@ volumes:
   rabbit_data:
 
 networks:
-  stoat-network:
-    driver: bridge
+  stoat-network-stable:
+    external: true
+
