@@ -19,10 +19,10 @@ host = "rabbit"
 #
 # Remember to change these to https/wss where appropriate in production!
 app = "https://stoat-dev.zasperhub.com"
-api = "http://stoatchat-ending-api-1:14702"
+api = "http://api:14702"
 events = "wss://stoat-dev.zasperhub.com/ws"
-autumn = "http://stoatchat-ending-autumn-1:14704"
-january = "http://stoatchat-ending-january-1:14705"
+autumn = "http://autumn:14704"
+january = "http://january:14705"
 voso_legacy = ""
 voso_legacy_ws = ""
 
@@ -72,7 +72,7 @@ use_starttls = false
 [files]
 # Encryption key for stored files
 # Generate your own key using `openssl rand -base64 32`
-encryption_key = "qcuMA+ssxhMyKaNAKBGFfryfFtUH8NDlamQyDwGW6fU="
+encryption_key = "9hoPGs8Bm2e9plSRm/icH/psb2gb38PtswbT36cznXA="
 # Quality used for lossy WebP previews (set to 100 for lossless)
 webp_quality = 80.0
 # Mime types that cannot be uploaded or served
