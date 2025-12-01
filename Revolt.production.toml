@@ -1,0 +1,49 @@
+# 🔧 Production Configuration for stoat-dev.zasperhub.com
+# Email verification DISABLED for registration to work
+
+[database]
+# MongoDB connection URL - using compose service names
+mongodb = "mongodb://database:27017"
+# Redis connection URL - using compose service names
+redis = "redis://redis:6379/"
+
+[rabbit]
+host = "rabbit"
+port = 5672
+username = "rabbituser"
+password = "rabbitpass"
+
+[hosts]
+# Production URLs matching frontend configuration
+app = "https://stoat-dev.zasperhub.com"
+api = "https://stoat-dev.zasperhub.com"
+events = "wss://stoat-dev.zasperhub.com/ws"
+autumn = "https://stoat-dev.zasperhub.com/autumn"
+january = "https://stoat-dev.zasperhub.com/january"
+voso_legacy = ""
+voso_legacy_ws = ""
+
+[api]
+# Registration settings
+[api.registration]
+invite_only = false
+
+# SMTP configuration - DISABLED to prevent email verification errors
+[api.smtp]
+host = ""  # Empty host disables email verification completely
+username = ""
+password = ""
+from_address = ""
+reply_to = ""
+port = 25
+use_tls = false
+use_starttls = false
+
+[files.s3]
+# S3 protocol endpoint (internal docker network)
+endpoint = "http://minio:9000"
+region = "minio"
+access_key_id = "minioautumn"
+secret_access_key = "minioautumn"
+default_bucket = "attachments"
+path_style_buckets = true

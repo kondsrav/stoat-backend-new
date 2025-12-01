@@ -19,7 +19,8 @@ stoat-dev.zasperhub.com {
 
     # Media/backends
     handle_path /autumn/* {
-        reverse_proxy stoatchat-ending-autumn-1:14704
+        uri strip_prefix /autumn
+        reverse_proxy stoatchat-ending-minio-1:9000
     }
 
     handle_path /january/* {

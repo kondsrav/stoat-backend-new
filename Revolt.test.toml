@@ -1,0 +1,20 @@
+# Minimal test config for builds
+
+[database]
+
+mongodb = "mongodb://127.0.0.1:27017"
+
+redis = "redis://127.0.0.1:6379"
+
+[hosts]
+
+app = "http://localhost:3000"
+
+api = "http://localhost:14702"
+
+events = "http://localhost:14703"
+
+autumn = "http://localhost:14704"
+
+january = "http://localhost:14705"
+

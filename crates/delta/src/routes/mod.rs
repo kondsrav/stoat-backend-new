@@ -7,6 +7,7 @@ use rocket::{Build, Rocket};
 mod bots;
 mod channels;
 mod customisation;
+mod files;
 mod invites;
 mod onboard;
 mod policy;
@@ -33,6 +34,7 @@ pub fn mount(config: Settings, mut rocket: Rocket<Build>) -> Rocket<Build> {
             "/invites" => invites::routes(),
             "/custom" => customisation::routes(),
             "/safety" => safety::routes(),
+            "/files" => files::routes(),
             "/auth/account" => rocket_authifier::routes::account::routes(),
             "/auth/session" => rocket_authifier::routes::session::routes(),
             "/auth/mfa" => rocket_authifier::routes::mfa::routes(),
@@ -54,6 +56,7 @@ pub fn mount(config: Settings, mut rocket: Rocket<Build>) -> Rocket<Build> {
             "/invites" => invites::routes(),
             "/custom" => customisation::routes(),
             "/safety" => safety::routes(),
+            "/files" => files::routes(),
             "/auth/account" => rocket_authifier::routes::account::routes(),
             "/auth/session" => rocket_authifier::routes::session::routes(),
             "/auth/mfa" => rocket_authifier::routes::mfa::routes(),
@@ -76,6 +79,7 @@ pub fn mount(config: Settings, mut rocket: Rocket<Build>) -> Rocket<Build> {
             "/invites" => invites::routes(),
             "/custom" => customisation::routes(),
             "/safety" => safety::routes(),
+            "/files" => files::routes(),
             "/auth/account" => rocket_authifier::routes::account::routes(),
             "/auth/session" => rocket_authifier::routes::session::routes(),
             "/auth/mfa" => rocket_authifier::routes::mfa::routes(),
@@ -96,6 +100,7 @@ pub fn mount(config: Settings, mut rocket: Rocket<Build>) -> Rocket<Build> {
             "/invites" => invites::routes(),
             "/custom" => customisation::routes(),
             "/safety" => safety::routes(),
+            "/files" => files::routes(),
             "/auth/account" => rocket_authifier::routes::account::routes(),
             "/auth/session" => rocket_authifier::routes::session::routes(),
             "/auth/mfa" => rocket_authifier::routes::mfa::routes(),
@@ -374,3 +379,4 @@ fn custom_openapi_spec() -> OpenApi {
         ..Default::default()
     }
 }
+

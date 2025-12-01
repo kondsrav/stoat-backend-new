@@ -11,6 +11,7 @@ edition = "2018"
 # Test
 rand = "0.8.5"
 redis-kiss = "0.1.4"
+multer = "3.1"
 
 # Utility
 lru = "0.7.0"
@@ -30,6 +31,10 @@ bitfield = "0.13.2"
 # ID / key generation
 ulid = "0.4.1"
 nanoid = "0.4.0"
+
+# File type detection
+infer = "0.16.0"
+sha2 = "0.10.8"
 
 # serde
 serde_json = "1.0.57"
@@ -69,6 +74,7 @@ amqprs = { version = "1.7.0" }
 # core
 authifier = "1.0.15"
 revolt-config = { path = "../core/config" }
+revolt-files = { path = "../core/files" }
 revolt-database = { path = "../core/database", features = [
     "rocket-impl",
     "redis-is-patched",
@@ -85,3 +91,4 @@ revolt-ratelimits = { path = "../core/ratelimits", features = ["rocket"] }
 
 [build-dependencies]
 vergen = "7.5.0"
+

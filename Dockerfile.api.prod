@@ -13,7 +13,7 @@ WORKDIR /app
 COPY . .
 
 # Build the delta service with our custom search functionality
-RUN cargo build --release --bin revolt-delta
+RUN cargo build --bin revolt-delta
 
 # Runtime image
 FROM debian:bookworm-slim
@@ -24,8 +24,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/target/release/revolt-delta /app/revolt-delta
-COPY Revolt.production.toml /app/Revolt.toml
+COPY --from=builder /app/target/debug/revolt-delta /usr/local/bin/
+COPY Revolt.toml /app/Revolt.toml
 
 EXPOSE 14702
 CMD ["./revolt-delta"]

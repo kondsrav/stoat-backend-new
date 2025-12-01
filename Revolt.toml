@@ -4,7 +4,7 @@
 [database]
 # MongoDB connection URL
 # Use the docker-compose service name so containers can reach MongoDB inside the compose network
-mongodb = "mongodb://database:27017"
+mongodb = "mongodb://database:27017/revolt"
 # Redis connection URL
 # Defaults to the container name specified in self-hosted
 redis = "redis://redis:6379/"
@@ -72,7 +72,7 @@ use_starttls = false
 [files]
 # Encryption key for stored files
 # Generate your own key using `openssl rand -base64 32`
-encryption_key = "9hoPGs8Bm2e9plSRm/icH/psb2gb38PtswbT36cznXA="
+encryption_key = "H1WUGMZ164HOjSjZqgj8FhBfNOkt5JdNzOO7F2u/7GU="
 # Quality used for lossy WebP previews (set to 100 for lossless)
 webp_quality = 80.0
 # Mime types that cannot be uploaded or served
@@ -118,6 +118,8 @@ secret_access_key = "minioautumn"
 default_bucket = "attachments"
 # Use path-style buckets (required for MinIO inside docker-compose)
 path_style_buckets = true
+# Public URL where files can be downloaded
+public_url = "https://stoat-dev.zasperhub.com/autumn"
 
 [features]
 # Feature gate options
@@ -149,7 +151,7 @@ body_limit_size = 20_000_000
 # Limits imposed on new users
 
 # Number of outgoing friend requests permitted at any time
-outgoing_friend_requests = 5
+outgoing_friend_requests = 50
 
 # Maximum number of owned bots
 bots = 2
@@ -176,7 +178,7 @@ emojis = 500_000
 # Limits imposed on users by default
 
 # Number of outgoing friend requests permitted at any time
-outgoing_friend_requests = 10
+outgoing_friend_requests = 100
 
 # Maximum number of owned bots
 bots = 5

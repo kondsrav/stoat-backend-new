@@ -78,6 +78,8 @@ impl AbstractAttachments for MongoDb {
     }
 
     /// Find an attachment by its details and mark it as used by a given parent.
+    /// If the file doesn't exist in the database (uploaded via Autumn without MongoDB integration),
+    /// create a placeholder entry with minimal metadata.
     async fn find_and_use_attachment(
         &self,
         id: &str,
@@ -85,7 +87,8 @@ impl AbstractAttachments for MongoDb {
         used_for: FileUsedFor,
         uploader_id: String,
     ) -> Result<File> {
-        let file = query!(
+        // Try to find existing file in database
+        let file = match query!(
             self,
             find_one,
             COL,
@@ -96,23 +99,55 @@ impl AbstractAttachments for MongoDb {
                     "$exists": false
                 }
             }
-        )?
-        .ok_or_else(|| create_error!(NotFound))?;
+        )? {
+            Some(f) => {
+                // File exists in DB, update it
+                self.col::<Document>(COL)
+                    .update_one(
+                        doc! {
+                            "_id": id
+                        },
+                        doc! {
+                            "$set": {
+                                "used_for": report_internal_error!(to_document(&used_for))?,
+                                "uploader_id": uploader_id.clone()
+                            }
+                        },
+                    )
+                    .await
+                    .map_err(|_| create_database_error!("update_one", COL))?;
+                f
+            },
+            None => {
+                // File doesn't exist in DB - this happens when using Autumn without MongoDB integration
+                // Create a placeholder file entry so the message can be sent
+                use iso8601_timestamp::Timestamp;
+                use crate::Metadata;
 
-        self.col::<Document>(COL)
-            .update_one(
-                doc! {
-                    "_id": id
-                },
-                doc! {
-                    "$set": {
-                        "used_for": report_internal_error!(to_document(&used_for))?,
-                        "uploader_id": uploader_id
-                    }
-                },
-            )
-            .await
-            .map_err(|_| create_database_error!("update_one", COL))?;
+                let placeholder = File {
+                    id: id.to_string(),
+                    tag: tag.to_string(),
+                    filename: format!("attachment-{}", id),
+                    hash: Some(id.to_string()), // Use file ID as hash fallback
+                    uploaded_at: Some(Timestamp::now_utc()),
+                    uploader_id: Some(uploader_id.clone()),
+                    used_for: Some(used_for.clone()),
+                    deleted: None,
+                    reported: None,
+                    metadata: Metadata::File,
+                    content_type: "application/octet-stream".to_string(),
+                    size: 0, // Unknown size
+                    message_id: None,
+                    user_id: None,
+                    server_id: None,
+                    object_id: None,
+                };
+
+                // Insert the placeholder into the database
+                self.insert_attachment(&placeholder).await?;
+                placeholder
+            }
+        };
 
         Ok(file)
     }
@@ -195,3 +230,4 @@ impl MongoDb {
             .map_err(|_| create_database_error!("update_many", COL))
     }
 }
+
